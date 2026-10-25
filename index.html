@@ -153,36 +153,7 @@ body{
   margin-bottom:26px;
 }
 
-/* ---------- tabs ---------- */
-.tabs{display:flex;gap:4px;margin-bottom:22px;}
-.tab-btn{
-  font-family:'Oswald',ui-sans-serif,sans-serif;
-  font-weight:600;
-  font-size:1rem;
-  letter-spacing:.02em;
-  text-transform:uppercase;
-  background:none;
-  border:1px solid var(--line);
-  border-bottom:none;
-  color:var(--muted);
-  padding:11px 20px 10px;
-  cursor:pointer;
-  border-radius:6px 6px 0 0;
-  transition:background .15s,color .15s;
-}
-.tab-btn:hover{color:var(--ink);}
-.tab-btn.active{
-  color:var(--ink);
-  background:var(--surface);
-  border-color:var(--line-strong);
-  box-shadow:0 -2px 0 var(--accent) inset;
-}
-.tab-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
-.tabs-rule{border-top:1px solid var(--line-strong);margin-top:-1px;margin-bottom:28px;}
-
-/* ---------- panels / cards ---------- */
-.panel{display:none;}
-.panel.active{display:block;}
+/* ---------- cards ---------- */
 
 .card{
   background:var(--surface);
@@ -376,178 +347,107 @@ footer{
       <span>Ref. No. CT&#8209;40HC&#8209;01</span>
     </div>
     <h1>Carton Tools</h1>
-    <p class="tag">Work out how many cartons load into a container, and what each carton costs to produce off the board price.</p>
+    <p class="tag">Enter a carton size once to see what each carton costs to produce and how many load into each container.</p>
   </div>
   <div class="hatch" aria-hidden="true"></div>
 
-  <div class="tabs" role="tablist">
-    <button class="tab-btn active" data-tab="load" role="tab" aria-selected="true">Container Loading</button>
-    <button class="tab-btn" data-tab="cost" role="tab" aria-selected="false">Production Cost</button>
-  </div>
-  <div class="tabs-rule"></div>
-
-  <!-- ============= TAB 1: CONTAINER LOADING ============= -->
-  <div class="panel active" id="panel-load">
-    <div class="card">
-      <p class="card-kicker">Step 1</p>
-      <h2>Carton box measurements</h2>
-      <div class="grid">
-        <div class="field">
-          <label for="ld_len">Length</label>
-          <input type="number" id="ld_len" min="0" step="0.01" value="40">
-        </div>
-        <div class="field">
-          <label for="ld_wid">Width</label>
-          <input type="number" id="ld_wid" min="0" step="0.01" value="30">
-        </div>
-        <div class="field">
-          <label for="ld_hgt">Height</label>
-          <input type="number" id="ld_hgt" min="0" step="0.01" value="30">
-        </div>
-        <div class="field">
-          <label for="ld_unit">Unit</label>
-          <select id="ld_unit">
-            <option value="cm" selected>cm</option>
-            <option value="in">inches</option>
-            <option value="mm">mm</option>
-            <option value="m">m</option>
-          </select>
-        </div>
+  <div class="card">
+    <p class="card-kicker">Step 1</p>
+    <h2>Carton size</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="b_len">Length</label>
+        <input type="number" id="b_len" min="0" step="0.01" value="40">
       </div>
-      <h3>Optional — weight limit check</h3>
-      <div class="grid">
-        <div class="field">
-          <label for="ld_wt">Weight per carton</label>
-          <input type="number" id="ld_wt" min="0" step="0.01" placeholder="e.g. 12">
-        </div>
-        <div class="field">
-          <label for="ld_wtunit">Weight unit</label>
-          <select id="ld_wtunit">
-            <option value="kg" selected>kg</option>
-            <option value="lb">lb</option>
-          </select>
-        </div>
+      <div class="field">
+        <label for="b_wid">Width</label>
+        <input type="number" id="b_wid" min="0" step="0.01" value="30">
       </div>
-      <div class="error" id="ld_error"></div>
-      <button class="btn" onclick="calcLoading()">Calculate loading</button>
+      <div class="field">
+        <label for="b_hgt">Height</label>
+        <input type="number" id="b_hgt" min="0" step="0.01" value="30">
+      </div>
+      <div class="field">
+        <label for="b_unit">Unit</label>
+        <select id="b_unit">
+          <option value="cm" selected>cm</option>
+          <option value="in">inches</option>
+          <option value="mm">mm</option>
+          <option value="m">m</option>
+        </select>
+      </div>
     </div>
-
-    <div class="card" id="ld_results" style="display:none;">
-      <p class="card-kicker">Result</p>
-      <h2>Best fit per container</h2>
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Container</th>
-              <th>Internal size, cm (L×W×H)</th>
-              <th>Orientation used, cm</th>
-              <th>Layout</th>
-              <th>Boxes (volume fit)</th>
-              <th>Boxes (weight-limited)</th>
-              <th>Volume used</th>
-            </tr>
-          </thead>
-          <tbody id="ld_tbody"></tbody>
-        </table>
+    <h3>Optional — weight limit check</h3>
+    <div class="grid">
+      <div class="field">
+        <label for="ld_wt">Weight per carton</label>
+        <input type="number" id="ld_wt" min="0" step="0.01" placeholder="e.g. 12">
       </div>
-      <p class="note" id="ld_note" style="margin-top:14px;"></p>
-    </div>
-
-    <div class="card">
-      <h3 style="margin-top:0;padding-top:0;border-top:none;">Method note</h3>
-      <p class="note">
-        For each container, the tool tests all 6 rotations of your carton and picks the orientation that fits the most boxes using simple grid stacking
-        (<code>floor(container ÷ box)</code> along each axis — no mixed orientations or interlocking). This mirrors how most freight forwarders estimate container loads.
-        Actual counts can be a bit higher with mixed-orientation ("brick") packing, or lower once dunnage, pallets, and door-swing clearance are factored in.
-        If you enter a carton weight, the box count is also capped by the container's typical max payload.
-      </p>
+      <div class="field">
+        <label for="ld_wtunit">Weight unit</label>
+        <select id="ld_wtunit">
+          <option value="kg" selected>kg</option>
+          <option value="lb">lb</option>
+        </select>
+      </div>
     </div>
   </div>
 
-  <!-- ============= TAB 2: PRODUCTION COST ============= -->
-  <div class="panel" id="panel-cost">
-    <div class="card">
-      <p class="card-kicker">Step 1</p>
-      <h2>Carton size</h2>
-      <div class="grid">
-        <div class="field">
-          <label for="c_len">Length</label>
-          <input type="number" id="c_len" min="0" step="0.01" value="40">
-        </div>
-        <div class="field">
-          <label for="c_wid">Width</label>
-          <input type="number" id="c_wid" min="0" step="0.01" value="30">
-        </div>
-        <div class="field">
-          <label for="c_hgt">Height</label>
-          <input type="number" id="c_hgt" min="0" step="0.01" value="30">
-        </div>
-        <div class="field">
-          <label for="c_unit">Unit</label>
-          <select id="c_unit">
-            <option value="cm" selected>cm</option>
-            <option value="in">inches</option>
-            <option value="mm">mm</option>
-            <option value="m">m</option>
-          </select>
-        </div>
+  <div class="card">
+    <p class="card-kicker">Step 2</p>
+    <h2>Board &amp; pricing</h2>
+    <div class="grid">
+      <div class="field">
+        <label for="c_method">Method</label>
+        <select id="c_method" onchange="toggleMethodFields()">
+          <option value="rsc" selected>RSC box blank (standard slotted carton)</option>
+          <option value="simple">Simple total surface area</option>
+          <option value="sqm">SQM method — 2-piece lid+base box</option>
+        </select>
       </div>
-
-      <h3>Board / blank calculation method</h3>
-      <div class="grid">
-        <div class="field">
-          <label for="c_method">Method</label>
-          <select id="c_method" onchange="toggleMethodFields()">
-            <option value="rsc" selected>RSC box blank (standard slotted carton)</option>
-            <option value="simple">Simple total surface area</option>
-            <option value="sqm">SQM method — 2-piece lid+base box</option>
-          </select>
-        </div>
-        <div class="field" id="c_flap_field">
-          <label for="c_flap">Glue flap allowance</label>
-          <input type="number" id="c_flap" min="0" step="0.01" value="4">
-        </div>
-        <div class="field" id="c_flap1_field" style="display:none;">
-          <label for="c_flap1">Flap 1 (L+W side), cm</label>
-          <input type="number" id="c_flap1" min="0" step="0.01" value="6">
-        </div>
-        <div class="field" id="c_flap2_field" style="display:none;">
-          <label for="c_flap2">Flap 2 (W+H side), cm</label>
-          <input type="number" id="c_flap2" min="0" step="0.01" value="4">
-        </div>
-        <div class="field" id="c_pieces_field" style="display:none;">
-          <label for="c_pieces">Pieces per box</label>
-          <input type="number" id="c_pieces" min="1" step="1" value="2">
-        </div>
-        <div class="field" id="c_waste_field">
-          <label for="c_waste">Trim / waste allowance %</label>
-          <input type="number" id="c_waste" min="0" step="0.1" value="5">
-        </div>
+      <div class="field" id="c_flap_field">
+        <label for="c_flap">Glue flap allowance</label>
+        <input type="number" id="c_flap" min="0" step="0.01" value="4">
       </div>
-
-      <h3>Pricing</h3>
-      <div class="grid">
-        <div class="field">
-          <label for="c_price" id="c_price_label">Price per square foot</label>
-          <input type="number" id="c_price" min="0" step="0.01" value="0.50">
-        </div>
-        <div class="field">
-          <label for="c_currency">Currency label (optional)</label>
-          <input type="text" id="c_currency" placeholder="e.g. USD, BDT, INR" value="USD">
-        </div>
-        <div class="field">
-          <label for="c_qty">Quantity (boxes)</label>
-          <input type="number" id="c_qty" min="0" step="1" value="1000">
-        </div>
+      <div class="field" id="c_flap1_field" style="display:none;">
+        <label for="c_flap1">Flap 1 (L+W side), cm</label>
+        <input type="number" id="c_flap1" min="0" step="0.01" value="6">
       </div>
-
-      <div class="error" id="c_error"></div>
-      <button class="btn" onclick="calcCost()">Calculate cost</button>
+      <div class="field" id="c_flap2_field" style="display:none;">
+        <label for="c_flap2">Flap 2 (W+H side), cm</label>
+        <input type="number" id="c_flap2" min="0" step="0.01" value="4">
+      </div>
+      <div class="field" id="c_pieces_field" style="display:none;">
+        <label for="c_pieces">Pieces per box</label>
+        <input type="number" id="c_pieces" min="1" step="1" value="2">
+      </div>
+      <div class="field" id="c_waste_field">
+        <label for="c_waste">Trim / waste allowance %</label>
+        <input type="number" id="c_waste" min="0" step="0.1" value="5">
+      </div>
     </div>
+    <h3>Pricing</h3>
+    <div class="grid">
+      <div class="field">
+        <label for="c_price" id="c_price_label">Price per square foot</label>
+        <input type="number" id="c_price" min="0" step="0.01" value="0.50">
+      </div>
+      <div class="field">
+        <label for="c_currency">Currency label (optional)</label>
+        <input type="text" id="c_currency" placeholder="e.g. USD, BDT, INR" value="USD">
+      </div>
+      <div class="field">
+        <label for="c_qty">Quantity (boxes)</label>
+        <input type="number" id="c_qty" min="0" step="1" value="1000">
+      </div>
+    </div>
+    <div class="error" id="b_error"></div>
+    <button class="btn" onclick="calcAll()">Calculate</button>
+  </div>
 
-    <div class="card" id="c_results" style="display:none;">
-      <p class="card-kicker">Result</p>
+  <div id="results" style="display:none;">
+    <div class="card">
+      <p class="card-kicker">Result · Production cost</p>
       <h2>Cost breakdown</h2>
       <div class="result-hero">
         <div class="stat hi">
@@ -571,35 +471,52 @@ footer{
     </div>
 
     <div class="card">
-      <h3 style="margin-top:0;padding-top:0;border-top:none;">Method note</h3>
-      <p class="note">
-        <b>RSC method</b> (most common corrugated box style) estimates the flat blank/sheet needed to die-cut the box:
-        blank length = 2 × (L + W) + glue flap; blank width = H + W.
-        <b>Simple method</b> just sums the box's total outer surface area: 2×(L·W + L·H + W·H). This under-estimates real board usage for corrugated RSC boxes
-        since it ignores flaps, but is useful for folding-carton or wrap-style costing.
-        The waste % accounts for trim, print bleed, and press setup loss. Final cost = board area (sq ft) × (1 + waste%) × price per sq ft.<br><br>
-        <b>SQM method</b> is for a 2-piece telescoping box (separate lid + base, common for garment/gift boxes): blank A = L + W + flap 1, blank B = W + H + flap 2,
-        SQM per piece = (A × B) ÷ 10,000, SQM per box = SQM per piece × pieces per box (2 for lid+base, 1 for a single flat panel), then cost = SQM per box × price per SQM.
-        No waste % is applied — it mirrors a mill costing sheet exactly.
-      </p>
+      <p class="card-kicker">Result · Container loading</p>
+      <h2>Best fit per container</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Container</th>
+              <th>Internal size, cm (L×W×H)</th>
+              <th>Orientation used, cm</th>
+              <th>Layout</th>
+              <th>Boxes (volume fit)</th>
+              <th>Boxes (weight-limited)</th>
+              <th>Volume used</th>
+              <th>Carton cost per container</th>
+            </tr>
+          </thead>
+          <tbody id="ld_tbody"></tbody>
+        </table>
+      </div>
+      <p class="note" id="ld_note" style="margin-top:14px;"></p>
     </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0;padding-top:0;border-top:none;">Method notes</h3>
+    <p class="note">
+      <b>Container loading:</b> for each container, the tool tests all 6 rotations of your carton and picks the orientation that fits the most boxes using simple grid stacking
+      (<code>floor(container ÷ box)</code> along each axis — no mixed orientations or interlocking). This mirrors how most freight forwarders estimate container loads.
+      Actual counts can be a bit higher with mixed-orientation ("brick") packing, or lower once dunnage, pallets, and door-swing clearance are factored in.
+      If you enter a carton weight, the box count is also capped by the container's typical max payload.
+      <b>Carton cost per container</b> = cartons that fit × cost per box.<br><br>
+      <b>RSC method</b> (most common corrugated box style) estimates the flat blank/sheet needed to die-cut the box:
+      blank length = 2 × (L + W) + glue flap; blank width = H + W.
+      <b>Simple method</b> just sums the box's total outer surface area: 2×(L·W + L·H + W·H). This under-estimates real board usage for corrugated RSC boxes
+      since it ignores flaps, but is useful for folding-carton or wrap-style costing.
+      The waste % accounts for trim, print bleed, and press setup loss. Final cost = board area (sq ft) × (1 + waste%) × price per sq ft.<br><br>
+      <b>SQM method</b> is for a 2-piece telescoping box (separate lid + base, common for garment/gift boxes): blank A = L + W + flap 1, blank B = W + H + flap 2,
+      SQM per piece = (A × B) ÷ 10,000, SQM per box = SQM per piece × pieces per box (2 for lid+base, 1 for a single flat panel), then cost = SQM per box × price per SQM.
+      No waste % is applied — it mirrors a mill costing sheet exactly.
+    </p>
   </div>
 
   <footer>Built for quick estimating — always confirm final container loading with your freight forwarder and box specs with your box manufacturer.</footer>
 </div>
 
 <script>
-/* ---------- tabs ---------- */
-document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-selected','false');});
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    btn.setAttribute('aria-selected','true');
-    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
-  });
-});
-
 /* ---------- unit conversion helpers ---------- */
 const TO_CM = {cm:1, mm:0.1, m:100, in:2.54};
 function toCm(val, unit){ return val * TO_CM[unit]; }
@@ -615,6 +532,10 @@ const CONTAINERS = [
   {key:'40hc',  name:"40' High Cube",     L:1203.2, W:235.2, H:269.8, maxPayloadKg:28580, cbm:76.3},
   {key:'45hc',  name:"45' High Cube",     L:1355.6, W:235.2, H:269.8, maxPayloadKg:27700, cbm:86.1},
 ];
+
+function money(currency, v, digits){
+  return `${currency ? currency+' ' : ''}${v.toLocaleString(undefined,{minimumFractionDigits:digits,maximumFractionDigits:digits})}`;
+}
 
 /* ---------- container loading calculation ---------- */
 function permutations(arr){
@@ -642,25 +563,9 @@ function bestFitForContainer(container, box){
   return best;
 }
 
-function calcLoading(){
-  const errEl = document.getElementById('ld_error');
-  errEl.style.display='none';
-
-  const len = parseFloat(document.getElementById('ld_len').value);
-  const wid = parseFloat(document.getElementById('ld_wid').value);
-  const hgt = parseFloat(document.getElementById('ld_hgt').value);
-  const unit = document.getElementById('ld_unit').value;
+function calcLoading(boxCm, cost){
   const wtRaw = parseFloat(document.getElementById('ld_wt').value);
   const wtUnit = document.getElementById('ld_wtunit').value;
-
-  if(!(len>0) || !(wid>0) || !(hgt>0)){
-    errEl.textContent = 'Please enter valid positive numbers for length, width, and height.';
-    errEl.style.display='block';
-    document.getElementById('ld_results').style.display='none';
-    return;
-  }
-
-  const boxCm = [toCm(len,unit), toCm(wid,unit), toCm(hgt,unit)];
   const boxVolCm3 = boxCm[0]*boxCm[1]*boxCm[2];
 
   let boxWeightKg = null;
@@ -700,6 +605,7 @@ function calcLoading(){
       <td><b>${best.count.toLocaleString()}</b></td>
       <td>${weightLimited===null ? '<span class="muted">&mdash;</span>' : (weightLimited ? `<span class="pill warn">${finalCount.toLocaleString()} capped</span>` : `<span class="pill good">${finalCount.toLocaleString()}</span>`)}</td>
       <td>${usedVolPct.toFixed(1)}%</td>
+      <td><b>${money(cost.currency, finalCount*cost.costPerBox, 2)}</b></td>
     `;
     tbody.appendChild(tr);
   });
@@ -707,9 +613,7 @@ function calcLoading(){
   document.getElementById('ld_note').innerHTML =
     `Carton used: <b>${boxCm[0].toFixed(1)} &times; ${boxCm[1].toFixed(1)} &times; ${boxCm[2].toFixed(1)} cm</b>` +
     (boxWeightKg ? ` &middot; <b>${boxWeightKg.toFixed(2)} kg</b> each` : '') +
-    `. Row highlighted fits the most cartons overall.`;
-
-  document.getElementById('ld_results').style.display='block';
+    ` &middot; <b>${money(cost.currency, cost.costPerBox, 4)}</b> per box. Row highlighted fits the most cartons overall.`;
 }
 
 /* ---------- production cost calculation ---------- */
@@ -724,29 +628,13 @@ function toggleMethodFields(){
   document.getElementById('c_out_sqft_label').textContent = method==='sqm' ? 'Board area per box (SQM)' : 'Board area per box (sq ft)';
 }
 
-function calcCost(){
-  const errEl = document.getElementById('c_error');
-  errEl.style.display='none';
-
-  const len = parseFloat(document.getElementById('c_len').value);
-  const wid = parseFloat(document.getElementById('c_wid').value);
-  const hgt = parseFloat(document.getElementById('c_hgt').value);
-  const unit = document.getElementById('c_unit').value;
+function calcCost(L, W, H, unit, price){
   const method = document.getElementById('c_method').value;
   const flapRaw = parseFloat(document.getElementById('c_flap').value) || 0;
   const wastePct = parseFloat(document.getElementById('c_waste').value) || 0;
-  const price = parseFloat(document.getElementById('c_price').value);
   const currency = document.getElementById('c_currency').value.trim() || '';
   const qty = parseFloat(document.getElementById('c_qty').value) || 0;
-
-  if(!(len>0) || !(wid>0) || !(hgt>0) || !(price>=0)){
-    errEl.textContent = 'Please enter valid positive numbers for carton size and price per sq ft.';
-    errEl.style.display='block';
-    document.getElementById('c_results').style.display='none';
-    return;
-  }
-
-  const L = toCm(len,unit), W = toCm(wid,unit), H = toCm(hgt,unit);
+  const cur = currency ? currency+' ' : '';
   const tbody = document.getElementById('c_breakdown');
 
   if(method==='sqm'){
@@ -762,9 +650,9 @@ function calcCost(){
     const costPerBox = sqmPerBox * price;
     const totalCost = sqmTotal * price;
 
-    document.getElementById('c_out_costperbox').textContent = `${currency ? currency+' ' : ''}${costPerBox.toFixed(4)}`;
+    document.getElementById('c_out_costperbox').textContent = `${cur}${costPerBox.toFixed(4)}`;
     document.getElementById('c_out_sqftperbox').textContent = sqmPerBox.toFixed(4);
-    document.getElementById('c_out_total').textContent = `${currency ? currency+' ' : ''}${totalCost.toLocaleString(undefined,{maximumFractionDigits:2})}`;
+    document.getElementById('c_out_total').textContent = `${cur}${totalCost.toLocaleString(undefined,{maximumFractionDigits:2})}`;
 
     const sqmRows = [
       ['Carton size (L×W×H)', `${L.toFixed(2)} × ${W.toFixed(2)} × ${H.toFixed(2)} cm`],
@@ -775,15 +663,14 @@ function calcCost(){
       ['SQM per piece', `${sqmPerPiece.toFixed(4)} m²`],
       ['Pieces per box', `${pieces}`],
       ['SQM per box', `${sqmPerBox.toFixed(4)} m²`],
-      ['Price per SQM', `${currency ? currency+' ' : ''}${price}`],
-      ['Cost per box', `${currency ? currency+' ' : ''}${costPerBox.toFixed(4)}`],
+      ['Price per SQM', `${cur}${price}`],
+      ['Cost per box', `${cur}${costPerBox.toFixed(4)}`],
       ['Quantity', qty.toLocaleString()],
       ['Total SQM', `${sqmTotal.toLocaleString(undefined,{maximumFractionDigits:4})} m²`],
-      ['Total cost', `${currency ? currency+' ' : ''}${totalCost.toLocaleString(undefined,{maximumFractionDigits:2})}`],
+      ['Total cost', `${cur}${totalCost.toLocaleString(undefined,{maximumFractionDigits:2})}`],
     ];
     tbody.innerHTML = sqmRows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
-    document.getElementById('c_results').style.display='block';
-    return;
+    return {costPerBox, currency};
   }
 
   const flapCm = toCm(flapRaw, unit);
@@ -804,9 +691,9 @@ function calcCost(){
   const costPerBox = sqftFinal * price;
   const totalCost = costPerBox * qty;
 
-  document.getElementById('c_out_costperbox').textContent = `${currency ? currency+' ' : ''}${costPerBox.toFixed(4)}`;
+  document.getElementById('c_out_costperbox').textContent = `${cur}${costPerBox.toFixed(4)}`;
   document.getElementById('c_out_sqftperbox').textContent = sqftFinal.toFixed(3);
-  document.getElementById('c_out_total').textContent = `${currency ? currency+' ' : ''}${totalCost.toLocaleString(undefined,{maximumFractionDigits:2})}`;
+  document.getElementById('c_out_total').textContent = `${cur}${totalCost.toLocaleString(undefined,{maximumFractionDigits:2})}`;
 
   const rows = [
     ['Carton size (L×W×H)', `${L.toFixed(2)} × ${W.toFixed(2)} × ${H.toFixed(2)} cm`],
@@ -819,18 +706,45 @@ function calcCost(){
   rows.push(['Raw board area', `${sqftRaw.toFixed(3)} sq ft`]);
   rows.push(['Waste / trim allowance', `${wastePct}%`]);
   rows.push(['Final board area per box', `${sqftFinal.toFixed(3)} sq ft`]);
-  rows.push(['Price per sq ft', `${currency ? currency+' ' : ''}${price}`]);
-  rows.push(['Cost per box', `${currency ? currency+' ' : ''}${costPerBox.toFixed(4)}`]);
+  rows.push(['Price per sq ft', `${cur}${price}`]);
+  rows.push(['Cost per box', `${cur}${costPerBox.toFixed(4)}`]);
   rows.push(['Quantity', qty.toLocaleString()]);
-  rows.push(['Total cost', `${currency ? currency+' ' : ''}${totalCost.toLocaleString(undefined,{maximumFractionDigits:2})}`]);
+  rows.push(['Total cost', `${cur}${totalCost.toLocaleString(undefined,{maximumFractionDigits:2})}`]);
 
   tbody.innerHTML = rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
-
-  document.getElementById('c_results').style.display='block';
+  return {costPerBox, currency};
 }
+
+/* ---------- combined calculation: one carton size drives both ---------- */
+function calcAll(){
+  const errEl = document.getElementById('b_error');
+  errEl.style.display='none';
+
+  const len = parseFloat(document.getElementById('b_len').value);
+  const wid = parseFloat(document.getElementById('b_wid').value);
+  const hgt = parseFloat(document.getElementById('b_hgt').value);
+  const unit = document.getElementById('b_unit').value;
+  const price = parseFloat(document.getElementById('c_price').value);
+
+  if(!(len>0) || !(wid>0) || !(hgt>0) || !(price>=0)){
+    errEl.textContent = 'Please enter valid positive numbers for length, width, height, and price.';
+    errEl.style.display='block';
+    document.getElementById('results').style.display='none';
+    return;
+  }
+
+  const L = toCm(len,unit), W = toCm(wid,unit), H = toCm(hgt,unit);
+  const cost = calcCost(L, W, H, unit, price);
+  calcLoading([L, W, H], cost);
+  document.getElementById('results').style.display='block';
+}
+
+/* recalculate live as any input changes */
+document.querySelectorAll('input, select').forEach(el=>el.addEventListener('input', calcAll));
 
 /* init */
 toggleMethodFields();
+calcAll();
 </script>
 </body>
 </html>
